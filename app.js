@@ -1,8 +1,8 @@
-const express = require("express");
-const jwt = require("jsonwebtoken");
-const dotenv = require("dotenv");
-const cookieParser = require("cookie-parser");
-const morgan = require("morgan");
+const express = require('express');
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
+const cookieParser = require('cookie-parser');
+const morgan = require('morgan');
 
 const app = express();
 
@@ -13,12 +13,12 @@ dotenv.config();
 const port = process.env.AUTH_PORT || 3000;
 const authPassword = process.env.AUTH_PASSWORD;
 const tokenSecret = process.env.AUTH_TOKEN_SECRET;
-const defaultUser = "user"; // default user when no username supplied
+const defaultUser = 'user'; // default user when no username supplied
 const expiryDays = 7;
 
 if (!authPassword || !tokenSecret) {
   console.error(
-    "Misconfigured server. Environment variables AUTH_PASSWORD and/or AUTH_TOKEN_SECRET are not configured"
+    'Misconfigured server. Environment variables AUTH_PASSWORD and/or AUTH_TOKEN_SECRET are not configured'
   );
   process.exit(1);
 }
@@ -35,7 +35,7 @@ const jwtVerify = (req, res, next) => {
     if (err) {
       // e.g malformed token, bad signature etc - clear the cookie also
       console.log(err);
-      res.clearCookie("authToken");
+      res.clearCookie('authToken');
       return res.status(403).send(err);
     }
 
@@ -50,13 +50,13 @@ const checkAuth = (user, pass) => {
   return false;
 };
 
-app.set("view engine", "ejs");
+app.set('view engine', 'ejs');
 
 // logging
-app.use(morgan("dev"));
+app.use(morgan('dev'));
 
 // serve static files in ./public
-app.use(express.static("public"));
+app.use(express.static('public'));
 
 // parse cookies
 app.use(cookieParser());
@@ -69,25 +69,25 @@ app.use(express.json());
 app.use(jwtVerify);
 
 // we don't need a root path, direct to login interface
-app.get("/", (req, res) => {
-  res.redirect("/login");
+app.get('/', (req, res) => {
+  res.redirect('/login');
 });
 
 // interface for users who are logged in
-app.get("/logged-in", (req, res) => {
-  if (!req.user) return res.redirect("/login");
-  return res.render("logged-in", { user: req.user || null });
+app.get('/logged-in', (req, res) => {
+  if (!req.user) return res.redirect('/login');
+  return res.render('logged-in', { user: req.user || null });
 });
 
 // login interface
-app.get("/login", (req, res) => {
-  if (req.user) return res.redirect("/logged-in");
-  return res.render("login");
+app.get('/login', (req, res) => {
+  if (req.user) return res.redirect('/logged-in');
+  return res.render('login');
 });
 
 // endpoint called by NGINX sub request
 // expect JWT in cookie 'authToken'
-app.get("/auth", (req, res, next) => {
+app.get('/auth', (req, res, next) => {
   if (req.user) {
     // user is authenticated, refresh cookie
 
@@ -97,7 +97,7 @@ app.get("/auth", (req, res, next) => {
     });
 
     // set JWT as cookie, 7 day age
-    res.cookie("authToken", token, {
+    res.cookie('authToken', token, {
       httpOnly: true,
       maxAge: 1000 * 86400 * expiryDays, // milliseconds
       secure: true,
@@ -111,7 +111,7 @@ app.get("/auth", (req, res, next) => {
 });
 
 // endpoint called by login page, username and password posted as JSON body
-app.post("/login", function (req, res) {
+app.post('/login', (req, res) => {
   const { username, password } = req.body;
 
   if (checkAuth(username, password)) {
@@ -124,12 +124,12 @@ app.post("/login", function (req, res) {
     });
 
     // set JWT as cookie, 7 day age
-    res.cookie("authToken", token, {
+    res.cookie('authToken', token, {
       httpOnly: true,
       maxAge: 1000 * 86400 * expiryDays, // milliseconds
       secure: true,
     });
-    return res.json({ status: "ok" });
+    return res.json({ status: 'ok' });
   }
 
   // failed auth
@@ -137,20 +137,20 @@ app.post("/login", function (req, res) {
 });
 
 // force logout
-app.get("/logout", (req, res) => {
-  res.clearCookie("authToken");
-  res.redirect("/login");
+app.get('/logout', (req, res) => {
+  res.clearCookie('authToken');
+  res.redirect('/login');
 });
 
 // endpoint called by logout page
-app.post("/logout", function (req, res) {
-  res.clearCookie("authToken");
+app.post('/logout', (req, res) => {
+  res.clearCookie('authToken');
   res.sendStatus(200);
 });
 
 // default 404
 app.use((req, res, next) => {
-  res.status(404).send("No such page");
+  res.status(404).send('No such page');
 });
 
 app.listen(port, () => console.log(`Listening at http://localhost:${port}`));

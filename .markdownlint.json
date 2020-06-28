@@ -1,0 +1,9 @@
+{
+  "default": true,
+  "line-length": false,
+  "no-alt-text": false,
+  "no-trailing-punctuation": false,
+  "no-bare-urls": false,
+  "no-inline-html": false,
+  "code-block-style": false
+}
