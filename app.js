@@ -81,15 +81,32 @@ app.get('/logged-in', (req, res) => {
 
 // login interface
 app.get('/login', (req, res) => {
+  // parameters from original client request
+  // these could be used for validating request
+  const requestUri = req.headers['x-original-uri'];
+  const remoteAddr = req.headers['x-original-remote-addr'];
+  const host = req.headers['x-original-host'];
+
+  // check if user is already logged in
   if (req.user) return res.redirect('/logged-in');
-  return res.render('login');
+
+  // user not logged in, show login interface
+  return res.render('login', {
+    referer: requestUri ? `${host}/${requestUri}` : '/',
+  });
 });
 
 // endpoint called by NGINX sub request
 // expect JWT in cookie 'authToken'
 app.get('/auth', (req, res, next) => {
+  // parameters from original client request
+  // these could be used for validating request
+  const requestUri = req.headers['x-original-uri'];
+  const remoteAddr = req.headers['x-original-remote-addr'];
+  const host = req.headers['x-original-host'];
+
   if (req.user) {
-    // user is authenticated, refresh cookie
+    // user is already authenticated, refresh cookie
 
     // generate JWT
     const token = jwt.sign({ user: req.user }, tokenSecret, {

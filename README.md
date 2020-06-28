@@ -42,6 +42,8 @@ location = /auth {
     proxy_pass_request_body off;
     proxy_set_header Content-Length "";
     proxy_set_header X-Original-URI $request_uri;
+    proxy_set_header X-Original-Remote-Addr $remote_addr;
+    proxy_set_header X-Original-Host $host;
 }
 
 location ~ ^/(login|logged-in|logout)$ {

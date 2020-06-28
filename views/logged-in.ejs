@@ -11,7 +11,7 @@
       <input type="submit" value="Logout" id="logout" />
       <h1>Hello <%= user %></h1>
       <p>You are logged in.</p>
-      <p>Visit <a href="/" id="host">/</a>.</p>
+      <p>Visit <a href="/" id="link">/</a>.</p>
     </div>
 
     <script>
@@ -36,8 +36,9 @@
         logout();
       });
 
-      const host = document.getElementById('host');
-      host.innerText = window.location.host;
+      const link = document.getElementById('link');
+      link.innerText = location.host;
+      link.href = location.host;
     </script>
   </body>
 </html>
