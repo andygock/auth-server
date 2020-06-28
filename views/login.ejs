@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login</title>
+    <%- include('head') %>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Login</h1>
+      <input type="password" name="password" id="password" />
+      <input type="submit" value="Login" id="login" />
+      <p id="message"></p>
+    </div>
+
+    <script>
+      // post password to /auth
+      const login = (password) => {
+        fetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password }),
+        })
+          .then((response) => {
+            // check for auth failure for rejected credentials
+            if (response.status === 401) return false;
+
+            // check for auth failure for other reasons
+            if (response.status !== 200) return false;
+
+            // auth okay
+            return response.json();
+          })
+          .then((data) => {
+            // console.log("data", data);
+
+            if (data && data.status === "ok") {
+              // auth success, cookie should be set
+              window.location.href = "/logged-in";
+              return;
+            }
+
+            // auth failure, give feedback to user
+            const message = document.getElementById("message");
+            message.innerText = "Authorisation attempt failed";
+          });
+      };
+
+      // handle password text field
+      const input = document.getElementById("password");
+      input.focus();
+      input.addEventListener("keyup", (e) => {
+        e.preventDefault();
+        if (e.key === "Enter") {
+          const password = input.value;
+          input.value = ""; // clear input
+          login(password);
+        }
+      });
+
+      // handle submit / login button
+      const submit = document.getElementById("login");
+      submit.addEventListener("click", (e) => {
+        e.preventDefault();
+        const password = input.value;
+        input.value = ""; // clear input
+        login(password);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Logged In</title>
+    <%- include('head') %>
+  </head>
+  <body>
+    <div class="container">
+      <input type="submit" value="Logout" id="logout" />
+      <h1>Hello <%= user %></h1>
+      <p>You are logged in.</p>
+      <p>Visit <a href="/" id="host">/</a>.</p>
+    </div>
+
+    <script>
+      const logout = () => {
+        fetch("/logout", {
+          method: "POST",
+        }).then((response) => {
+          // check for auth failure for other reasons
+          if (response.status !== 200) {
+            // auth failed
+            return;
+          }
+
+          // logout successful, redirect to login
+          window.location.href = "/login";
+        });
+      };
+
+      const submit = document.getElementById("logout");
+      submit.addEventListener("click", (e) => {
+        e.preventDefault();
+        logout();
+      });
+
+      const host = document.getElementById("host");
+      host.innerText = window.location.host;
+    </script>
+  </body>
+</html>
