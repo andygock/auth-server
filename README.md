@@ -1,10 +1,10 @@
 # auth
 
-A very simple standalone authentication server. Designed to be used with [NGINX sub request authentication](https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-subrequest-authentication/)
+A very simple standalone authentication server Express app. Designed to be used with [NGINX sub request authentication](https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-subrequest-authentication/).
 
 ## Configure `.env`
 
-- `AUTH_PORT` -  listening port of application
+- `AUTH_PORT` -  listening port of application (default: 3000)
 - `AUTH_PASSWORD` - authentication password
 - `AUTH_TOKEN_SECRET` - [JWT secret](https://en.wikipedia.org/wiki/JSON_Web_Token#Structure)
 
