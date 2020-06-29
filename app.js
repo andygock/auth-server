@@ -3,8 +3,19 @@ const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
+
+// rate limiter used on auth attempts
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 15, // limit each IP to 100 requests per windowMs
+  message: {
+    status: 'fail',
+    message: 'Too many requests, please try again later',
+  },
+});
 
 // read .env and store in process.env
 dotenv.config();
@@ -128,7 +139,7 @@ app.get('/auth', (req, res, next) => {
 });
 
 // endpoint called by login page, username and password posted as JSON body
-app.post('/login', (req, res) => {
+app.post('/login', apiLimiter, (req, res) => {
   const { username, password } = req.body;
 
   if (checkAuth(username, password)) {
@@ -146,11 +157,11 @@ app.post('/login', (req, res) => {
       maxAge: 1000 * 86400 * expiryDays, // milliseconds
       secure: true,
     });
-    return res.json({ status: 'ok' });
+    return res.send({ status: 'ok' });
   }
 
   // failed auth
-  res.sendStatus(401);
+  res.status(401).send({ status: 'fail', message: 'Invalid credentials' });
 });
 
 // force logout
