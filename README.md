@@ -1,4 +1,4 @@
-# auth
+# auth-server
 
 A very simple standalone authentication server Express app.
 
