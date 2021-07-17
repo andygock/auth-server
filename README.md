@@ -1,6 +1,20 @@
 # auth
 
-A very simple standalone authentication server Express app. Designed to be used with [NGINX sub request authentication](https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-subrequest-authentication/).
+A very simple standalone authentication server Express app.
+
+It can be used for protecting web sites with NGINX subrequest authentication.
+
+- Use `auth_request /auth` in [NGINX conf](https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-subrequest-authentication/).
+- When user requests protected area, NGINX makes an internal request to `/auth`. If 201 is returned, protected contents are served. Anything else, NGINX responds with 401.
+- `/auth` is reverse proxied to Express app [auth-server](https://github.com/andygock/auth-server) which handles authentication. Cookies are passed on as well, so the auth server can check for a [JWT](https://jwt.io/).
+- Auth server sets httpOnly cookie containing a JWT.
+- JWT updated with new expiry each time a user visits protected area.
+
+## How to use
+
+Refer to this tutorial on my blog:
+
+<https://gock.net/blog/2020/nginx-subrequest-authentication-server/>
 
 ## Configure `.env`
 
