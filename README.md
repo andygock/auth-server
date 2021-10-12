@@ -18,9 +18,12 @@ Refer to this tutorial on my blog:
 
 ## Configure `.env`
 
-- `AUTH_PORT` -  listening port of application (default: 3000)
-- `AUTH_PASSWORD` - authentication password
+- `AUTH_PORT` -  Listening port of application (default: 3000)
+- `AUTH_PASSWORD` - Authentication password
 - `AUTH_TOKEN_SECRET` - [JWT secret](https://en.wikipedia.org/wiki/JSON_Web_Token#Structure)
+- `AUTH_COOKIE_SECURE` - Secure attribute on authentication cookie sent from server. Set to `true` to enable, or if `AUTH_COOKIE_SECURE` is missing, defaults to `true`.
+
+Refer to [dotenv documentation](https://github.com/motdotla/dotenv#readme) for formatting.
 
 ## Development
 

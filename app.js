@@ -26,6 +26,10 @@ const authPassword = process.env.AUTH_PASSWORD;
 const tokenSecret = process.env.AUTH_TOKEN_SECRET;
 const defaultUser = 'user'; // default user when no username supplied
 const expiryDays = 7;
+const cookieSecure =
+  'AUTH_COOKIE_SECURE' in process.env
+    ? process.env.AUTH_COOKIE_SECURE === 'true'
+    : true;
 
 if (!authPassword || !tokenSecret) {
   console.error(
@@ -128,7 +132,7 @@ app.get('/auth', (req, res, next) => {
     res.cookie('authToken', token, {
       httpOnly: true,
       maxAge: 1000 * 86400 * expiryDays, // milliseconds
-      secure: true,
+      secure: cookieSecure,
     });
 
     return res.sendStatus(200);
@@ -155,7 +159,7 @@ app.post('/login', apiLimiter, (req, res) => {
     res.cookie('authToken', token, {
       httpOnly: true,
       maxAge: 1000 * 86400 * expiryDays, // milliseconds
-      secure: true,
+      secure: cookieSecure,
     });
     return res.send({ status: 'ok' });
   }
