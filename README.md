@@ -37,6 +37,12 @@ Start dev server
 
     yarn start
 
+Be aware that the authentication cookie used by default uses the [secure attribute](https://en.wikipedia.org/wiki/Secure_cookie) thus the demo will only work when connecting to via
+
+- HTTPS to a non-local IP address, or
+- HTTPS to a hostname, or
+- HTTP/HTTPS to localhost.
+
 ## Production
 
 Install with [pm2](https://pm2.keymetrics.io/)
