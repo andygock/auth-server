@@ -22,7 +22,6 @@ dotenv.config();
 
 // config vars
 const port = process.env.AUTH_PORT || 3000;
-const authPassword = process.env.AUTH_PASSWORD;
 const tokenSecret = process.env.AUTH_TOKEN_SECRET;
 const defaultUser = 'user'; // default user when no username supplied
 const expiryDays = 7;
@@ -31,9 +30,32 @@ const cookieSecure =
     ? process.env.AUTH_COOKIE_SECURE === 'true'
     : true;
 
-if (!authPassword || !tokenSecret) {
+// default auth function
+// can be customised by defining one in auth.js, e.g use custom back end database
+// using single password for the time being, but this could query a database etc
+let checkAuth = (user, pass) => {
+  const authPassword = process.env.AUTH_PASSWORD;
+  if (!authPassword) {
+    console.error(
+      'Misconfigured server. Environment variable AUTH_PASSWORD is not configured'
+    );
+    process.exit(1);
+  }
+
+  // check for correct user password
+  if (pass === authPassword) return true;
+  return false;
+};
+
+// load checkAuth() if defined by user in auth.js
+try {
+  customCheckAuth = require('./auth.js');
+  if (typeof customCheckAuth === 'function') checkAuth = customCheckAuth;
+} catch (ex) {}
+
+if (!tokenSecret) {
   console.error(
-    'Misconfigured server. Environment variables AUTH_PASSWORD and/or AUTH_TOKEN_SECRET are not configured'
+    'Misconfigured server. Environment variable AUTH_TOKEN_SECRET is not configured'
   );
   process.exit(1);
 }
@@ -57,12 +79,6 @@ const jwtVerify = (req, res, next) => {
     req.user = decoded.user || null;
     next();
   });
-};
-
-// using single password for the time being, but this could query a database etc
-const checkAuth = (user, pass) => {
-  if (pass === authPassword) return true;
-  return false;
 };
 
 app.set('view engine', 'ejs');
