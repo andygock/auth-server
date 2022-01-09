@@ -26,6 +26,8 @@ Refer to this tutorial on my blog:
 
 Refer to [dotenv documentation](https://github.com/motdotla/dotenv#readme) for formatting.
 
+You can define a custom auth routine in `auth.js`. See `auth.example.js` for an example. If you don't configure a `auth.js` it will use default simgple `AUTH_PASSWORD` password based authentication.
+
 ## Development
 
 Install [nodemon](https://nodemon.io/) globally.
@@ -55,7 +57,8 @@ Install with [pm2](https://pm2.keymetrics.io/)
 Use the following in our NGINX server conf.
 
 ```txt
-# redirect to /login if there is a auth failure, delete or comment this out if you don't want this behaviour and just show a generic 401 error
+# optional:
+# internal redirect to /login if there is a auth failure, delete or comment this out if you don't want this behaviour and just show a generic 401 error
 error_page 401 /login;
 
 location / {
@@ -65,14 +68,19 @@ location / {
     auth_request_set $auth_cookie $upstream_http_set_cookie;
     add_header Set-Cookie $auth_cookie;
 
+    auth_request_set $auth_status $upstream_status;
+
     try_files $uri $uri/ /index.html;
 }
 
 location = /auth {
-    # internal redirect, not accessible from outside
+    # internaly only, /auth can not be accessed from outside
     internal;
 
-    # internal proxy to auth-server running on port 3000
+    # internal proxy to auth-server running on port 3000, responses expected from proxy:
+    #   2xx response = access allowed via auth_request
+    #   401 or 403 response = access denied via auth_request
+    #   anything else = error
     proxy_pass http://localhost:3000;
 
     # don't pass request body to proxied server, we only need the headers which are passed on by default
@@ -87,17 +95,25 @@ location = /auth {
     proxy_set_header X-Original-Host $host;
 }
 
+# these are handled by the proxy as part of the auth routines
 location ~ ^/(login|logged-in|logout)$ {
+    proxy_pass http://localhost:3000;
+    proxy_set_header X-Original-URI $request_uri;
+    proxy_set_header X-Original-Remote-Addr $remote_addr;
+    proxy_set_header X-Original-Host $host;
+}
+
+# this CSS is used by the three requests above and is served by the proxy
+location = /css/skeleton.css {
     proxy_pass http://localhost:3000;
 }
 
+# optional location block
 # if you have other location blocks, be sure to add auth_request there too otherwise these requests won't get protected, for example
 location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
     expires 90d;
     log_not_found off;
     auth_request /auth;
-    auth_request_set $auth_cookie $upstream_http_set_cookie;
-    add_header Set-Cookie $auth_cookie;
 }
 ```
 
