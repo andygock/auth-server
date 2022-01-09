@@ -40,7 +40,7 @@ Start dev server
 Be aware that the authentication cookie used by default uses the [secure attribute](https://en.wikipedia.org/wiki/Secure_cookie) thus the demo will only work when connecting via
 
 - HTTPS to a non-local IP address, or
-- HTTPS to a hostname, or
+- HTTPS to a hostname other than "localhost", or
 - HTTP/HTTPS to localhost.
 
 ## Production
@@ -51,26 +51,52 @@ Install with [pm2](https://pm2.keymetrics.io/)
 
 ## Example NGINX conf
 
+Use the following in our NGINX server conf.
+
 ```txt
+# redirect to /login if there is a auth failure, delete or comment this out if you don't want this behaviour and just show a generic 401 error
+error_page 401 /login;
+
 location / {
     auth_request /auth;
+
+    # pass Set-Cookie headers from the subrequest response back to requestor
     auth_request_set $auth_cookie $upstream_http_set_cookie;
     add_header Set-Cookie $auth_cookie;
+
     try_files $uri $uri/ /index.html;
 }
 
 location = /auth {
+    # internal redirect, not accessible from outside
     internal;
-    proxy_pass http://localhost:3003;
+
+    # internal proxy to auth-server running on port 3000
+    proxy_pass http://localhost:3000;
+
+    # don't pass request body to proxied server, we only need the headers which are passed on by default
     proxy_pass_request_body off;
+
+    # there is no content length since we stripped the request body
     proxy_set_header Content-Length "";
+
+    # let proxy server know more details of request
     proxy_set_header X-Original-URI $request_uri;
     proxy_set_header X-Original-Remote-Addr $remote_addr;
     proxy_set_header X-Original-Host $host;
 }
 
 location ~ ^/(login|logged-in|logout)$ {
-    proxy_pass http://localhost:3003;
+    proxy_pass http://localhost:3000;
+}
+
+# if you have other location blocks, be sure to add auth_request there too otherwise these requests won't get protected, for example
+location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+    expires 90d;
+    log_not_found off;
+    auth_request /auth;
+    auth_request_set $auth_cookie $upstream_http_set_cookie;
+    add_header Set-Cookie $auth_cookie;
 }
 ```
 
