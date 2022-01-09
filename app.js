@@ -10,7 +10,7 @@ const app = express();
 // rate limiter used on auth attempts
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 15, // limit each IP to 100 requests per windowMs
+  max: 15, // limit each IP to 15 requests per windowMs
   message: {
     status: 'fail',
     message: 'Too many requests, please try again later',

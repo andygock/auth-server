@@ -9,6 +9,7 @@ It can be used for protecting web sites with NGINX subrequest authentication.
 - `/auth` is reverse proxied to Express app [auth-server](https://github.com/andygock/auth-server) which handles authentication. Cookies are passed on as well, so the auth server can check for a [JWT](https://jwt.io/).
 - Auth server sets httpOnly cookie containing a JWT.
 - JWT updated with new expiry each time a user visits protected area.
+- Default rate limit of 15 `/login` requests every 15 minutes.
 
 ## How to use
 
