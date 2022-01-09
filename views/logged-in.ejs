@@ -7,14 +7,21 @@
     <%- include('head') %>
   </head>
   <body>
-    <div class="container">
-      <input type="submit" value="Logout" id="logout" />
+    <div class="container" id="content">
+      <button id="logout">Log Out</button>
       <h1>Hello <%= user %></h1>
       <p>You are logged in.</p>
       <p>Visit <a href="/" id="link">/</a>.</p>
     </div>
 
     <script>
+      // make content visible, hidden by default, <noscript> content will show error message for non-JS browsers.
+      const content = document.getElementById('content');
+      content.style.display = 'block';
+
+      // change title
+      document.title = 'Logged in to ' + location.host;
+
       const logout = () => {
         fetch('/logout', {
           method: 'POST',
@@ -22,6 +29,7 @@
           // check for auth failure for other reasons
           if (response.status !== 200) {
             // auth failed
+            alert('Log out failed');
             return;
           }
 
@@ -30,15 +38,20 @@
         });
       };
 
-      const submit = document.getElementById('logout');
-      submit.addEventListener('click', (e) => {
+      const buttonLogout = document.getElementById('logout');
+      buttonLogout.addEventListener('click', (e) => {
         e.preventDefault();
         logout();
       });
 
-      const link = document.getElementById('link');
-      link.innerText = location.host;
-      link.href = location.host;
+      const visitLink = document.getElementById('link');
+      visitLink.innerText = location.host;
+      visitLink.href = location.protocol + '//' + location.host;
     </script>
+
+    <noscript
+      >JavaScript is not detected or enabled but it is required for this
+      site.</noscript
+    >
   </body>
 </html>

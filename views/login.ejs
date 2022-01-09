@@ -7,7 +7,7 @@
     <%- include('head') %>
   </head>
   <body>
-    <div class="container">
+    <div class="container" id="content" style="display: none">
       <h1>Login</h1>
       <input type="password" name="password" id="password" />
       <input type="submit" value="Login" id="login" />
@@ -15,6 +15,13 @@
     </div>
 
     <script>
+      // make content visible, hidden by default, <noscript> content will show error message for non-JS browsers.
+      const content = document.getElementById('content');
+      content.style.display = 'block';
+
+      // change title
+      document.title = 'Log in to ' + location.host;
+
       // post password to /auth
       const login = (password) => {
         fetch('/login', {
@@ -33,8 +40,6 @@
             return response.json();
           })
           .then((data) => {
-            // console.log("data", data);
-
             if (data && data.status === 'ok') {
               // auth success, cookie should be set
               window.location.href = '/logged-in';
@@ -43,7 +48,7 @@
 
             // auth failure, give feedback to user
             const message = document.getElementById('message');
-            message.innerText = 'Authorisation attempt failed';
+            message.innerText = 'Authorisation failed';
           });
       };
 
@@ -68,5 +73,10 @@
         login(password);
       });
     </script>
+
+    <noscript
+      >JavaScript is not detected or enabled but it is required for this
+      site.</noscript
+    >
   </body>
 </html>
