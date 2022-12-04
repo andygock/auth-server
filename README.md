@@ -26,7 +26,7 @@ Refer to this tutorial on my blog:
 
 Refer to [dotenv documentation](https://github.com/motdotla/dotenv#readme) for formatting.
 
-You can define a custom auth routine in `auth.js`. See `auth.example.js` for an example. If you don't configure a `auth.js` it will use default simgple `AUTH_PASSWORD` password based authentication.
+You can define a custom auth routine in `auth.js`. See `auth.example.js` for an example. If you don't configure a `auth.js` it will use default simple `AUTH_PASSWORD` password based authentication.
 
 ## Development
 
