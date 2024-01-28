@@ -38,7 +38,7 @@ Install dependencies
 
 Start dev server
 
-    yarn start
+    yarn watch
 
 Be aware that the authentication cookie used by default uses the [secure attribute](https://en.wikipedia.org/wiki/Secure_cookie) thus the demo will only work when connecting via
 
@@ -48,9 +48,20 @@ Be aware that the authentication cookie used by default uses the [secure attribu
 
 ## Production
 
+Start with `npm start`, or use one of the strategies below
+
+### PM2
+
 Install with [pm2](https://pm2.keymetrics.io/)
 
     pm2 start ./app.js --name auth
+
+### Docker
+
+```
+sudo docker build -t auth-server .
+sudo docker run -it -p 3000:3000 -e AUTH_PASSWORD=test -e AUTH_TOKEN_SECRET=verysecret auth-server
+```
 
 ## Example NGINX conf
 
