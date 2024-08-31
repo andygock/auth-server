@@ -110,8 +110,7 @@ location = /auth {
     proxy_set_header X-Original-Host $host;
 
     # optional realm header, allows to use the same auth server for multiple sites
-    proxy_set_header X-Auth-Realm "";
-    add_header X-Auth-Realm "myrealm";
+    proxy_set_header X-Auth-Realm "myrealm";
 }
 
 # these are handled by the proxy as part of the auth routines
@@ -122,8 +121,7 @@ location ~ ^/(login|logged-in|logout)$ {
     proxy_set_header X-Original-Host $host;
 
     # optional realm header, allows to use the same auth server for multiple sites
-    proxy_set_header X-Auth-Realm "";
-    add_header X-Auth-Realm "myrealm";
+    proxy_set_header X-Auth-Realm "myrealm";
 }
 
 # this CSS is used by the three requests above and is served by the proxy

@@ -10,7 +10,7 @@ dotenv.config();
 const authPassword = process.env.AUTH_PASSWORD;
 
 // using single password for the time being, but this could query a database etc
-const checkAuth = (user, pass) => {
+const checkAuth = (user, pass, realm) => {
   if (!authPassword) {
     console.error(
       'Misconfigured server. Environment variable AUTH_PASSWORD is not configured'

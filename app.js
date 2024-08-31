@@ -210,7 +210,7 @@ app.post('/login', apiLimiter, (req, res) => {
   const { username, password } = req.body;
   const realm = req.headers['x-auth-realm'];
 
-  if (checkAuth(username, password)) {
+  if (checkAuth(username, password, realm)) {
     // successful auth
     const user = username || defaultUser;
 
