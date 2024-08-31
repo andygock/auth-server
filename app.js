@@ -108,7 +108,12 @@ const jwtVerify = (req, res, next) => {
 app.set('view engine', 'ejs');
 
 // logging
-app.use(morgan('dev'));
+// https://github.com/expressjs/morgan
+if (process.env.NODE_ENV !== 'production') {
+  app.use(morgan('dev'));
+} else {
+  app.use(morgan('common'));
+}
 
 // serve static files in ./public
 app.use(express.static('public'));
