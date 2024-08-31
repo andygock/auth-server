@@ -23,6 +23,8 @@ Refer to this tutorial on my blog:
 - `AUTH_PASSWORD` - Authentication password
 - `AUTH_TOKEN_SECRET` - [JWT secret](https://en.wikipedia.org/wiki/JSON_Web_Token#Structure)
 - `AUTH_COOKIE_SECURE` - Secure attribute on authentication cookie sent from server. Set to `true` to enable, or if `AUTH_COOKIE_SECURE` is missing, defaults to `true`.
+- `AUTH_COOKIE_OVERRIDES` - Optional JSON string which is added to the `authToken` cookie, in addition to `httpOnly`, `secure` and `maxAge`.
+- `AUTH_EXPIRY_DAYS` - Optional number of days before JWT expires (default: 7)
 
 Refer to [dotenv documentation](https://github.com/motdotla/dotenv#readme) for formatting.
 
@@ -58,7 +60,7 @@ Install with [pm2](https://pm2.keymetrics.io/)
 
 ### Docker
 
-```
+```sh
 sudo docker build -t auth-server .
 sudo docker run -it -p 3000:3000 -e AUTH_PASSWORD=test -e AUTH_TOKEN_SECRET=verysecret auth-server
 ```
