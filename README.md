@@ -40,7 +40,7 @@ Install dependencies
 
 Start dev server
 
-    yarn watch
+    npm watch
 
 Be aware that the authentication cookie used by default uses the [secure attribute](https://en.wikipedia.org/wiki/Secure_cookie) thus the demo will only work when connecting via
 
