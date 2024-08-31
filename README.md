@@ -26,7 +26,7 @@ Refer to this tutorial on my blog:
 
 Refer to [dotenv documentation](https://github.com/motdotla/dotenv#readme) for formatting.
 
-You can define a custom auth routine in `auth.js`. See `auth.example.js` for an example. If you don't configure a `auth.js` it will use default simgple `AUTH_PASSWORD` password based authentication.
+You can define a custom auth routine in `auth.js`. See `auth.example.js` for an example. If you don't configure a `auth.js` it will use default simple `AUTH_PASSWORD` password based authentication.
 
 ## Development
 
@@ -38,12 +38,7 @@ Install dependencies
 
 Start dev server
 
-    npm start
-
-I developed this using `pnpm` so you can use that instead of `npm` if you prefer.
-
-    pnpm install
-    pnpm start
+    yarn watch
 
 Be aware that the authentication cookie used by default uses the [secure attribute](https://en.wikipedia.org/wiki/Secure_cookie) thus the demo will only work when connecting via
 
@@ -53,9 +48,20 @@ Be aware that the authentication cookie used by default uses the [secure attribu
 
 ## Production
 
+Start with `npm start`, or use one of the strategies below
+
+### PM2
+
 Install with [pm2](https://pm2.keymetrics.io/)
 
     pm2 start ./app.js --name auth
+
+### Docker
+
+```
+sudo docker build -t auth-server .
+sudo docker run -it -p 3000:3000 -e AUTH_PASSWORD=test -e AUTH_TOKEN_SECRET=verysecret auth-server
+```
 
 ## Example NGINX conf
 

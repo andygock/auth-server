@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const nocache = require('nocache');
 
 const app = express();
 
@@ -24,11 +25,27 @@ dotenv.config();
 const port = process.env.AUTH_PORT || 3000;
 const tokenSecret = process.env.AUTH_TOKEN_SECRET;
 const defaultUser = 'user'; // default user when no username supplied
-const expiryDays = 7;
+const expiryDays = process.env.EXPIRY_DAYS || 7;
 const cookieSecure =
   'AUTH_COOKIE_SECURE' in process.env
     ? process.env.AUTH_COOKIE_SECURE === 'true'
     : true;
+
+let cookieOverrides = {};
+try {
+  if (process.env.AUTH_COOKIE_OVERRIDES) {
+    const parsed = JSON.parse(process.env.AUTH_COOKIE_OVERRIDES);
+    for (const k of Object.keys(parsed)) {
+      cookieOverrides[k] = parsed[k];
+    }
+  }
+} catch (e) {
+  console.log(
+    `Warning: Could not parse AUTH_COOKIE_OVERRIDES: ${process.env.AUTH_COOKIE_OVERRIDES}\n`
+  );
+  console.log(e);
+  process.exit(1);
+}
 
 // default auth function
 // can be customised by defining one in auth.js, e.g use custom back end database
@@ -95,6 +112,9 @@ app.use(cookieParser());
 // parse json body
 app.use(express.json());
 
+// don't allow any form of caching, private or public
+app.use(nocache());
+
 // check for JWT cookie from requestor
 // if there is a valid JWT, req.user is assigned
 app.use(jwtVerify);
@@ -149,6 +169,7 @@ app.get('/auth', (req, res, next) => {
       httpOnly: true,
       maxAge: 1000 * 86400 * expiryDays, // milliseconds
       secure: cookieSecure,
+      ...cookieOverrides,
     });
 
     return res.sendStatus(200);
@@ -176,6 +197,7 @@ app.post('/login', apiLimiter, (req, res) => {
       httpOnly: true,
       maxAge: 1000 * 86400 * expiryDays, // milliseconds
       secure: cookieSecure,
+      ...cookieOverrides,
     });
     return res.send({ status: 'ok' });
   }
@@ -192,7 +214,14 @@ app.get('/logout', (req, res) => {
 
 // endpoint called by logout page
 app.post('/logout', (req, res) => {
-  res.clearCookie('authToken');
+  const options = {};
+  if (cookieOverrides.path) {
+    options.path = cookieOverrides.path;
+  }
+  if (cookieOverrides.domain) {
+    options.domain = cookieOverrides.domain;
+  }
+  res.clearCookie('authToken', options);
   res.sendStatus(200);
 });
 

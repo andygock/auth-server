@@ -9,7 +9,8 @@
     "morgan": "^1.10.0"
   },
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "node app.js",
+    "watch": "nodemon app.js"
   },
   "name": "auth-server",
   "version": "1.0.0",
