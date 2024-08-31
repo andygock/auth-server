@@ -11,12 +11,15 @@
   },
   "scripts": {
     "start": "node app.js",
-    "watch": "nodemon app.js"
+    "dev": "nodemon app.js"
   },
   "name": "auth-server",
   "version": "1.0.0",
   "main": "app.js",
   "repository": "git@github.com:andygock/auth-server.git",
   "author": "Andy Gock <andy@gock.net>",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
 }

@@ -42,7 +42,7 @@ Install dependencies
 
 Start dev server
 
-    npm watch
+    npm dev
 
 Be aware that the authentication cookie used by default uses the [secure attribute](https://en.wikipedia.org/wiki/Secure_cookie) thus the demo will only work when connecting via
 
@@ -58,7 +58,7 @@ Start with `npm start`, or use one of the strategies below
 
 Install with [pm2](https://pm2.keymetrics.io/)
 
-    pm2 start ./app.js --name auth
+    NODE_ENV=production pm2 start ./app.js --name auth
 
 ### Docker
 
