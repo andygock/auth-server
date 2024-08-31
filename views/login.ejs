@@ -9,7 +9,13 @@
   <body>
     <div class="container" id="content" style="display: none">
       <h1>Login</h1>
-      <input type="password" name="password" id="password" />
+      <p>Authentication is required to access <span id="area">this area</a></p>
+      <input
+        type="password"
+        name="password"
+        id="password"
+        placeholder="Enter your password"
+      />
       <input type="submit" value="Login" id="login" />
       <p id="message"></p>
     </div>
@@ -21,6 +27,8 @@
 
       // change title
       document.title = 'Log in to ' + location.host;
+
+      document.getElementById('area').innerText = location.host;
 
       // post password to /auth
       const login = (password) => {
@@ -48,7 +56,7 @@
 
             // auth failure, give feedback to user
             const message = document.getElementById('message');
-            message.innerText = 'Authorisation failed';
+            message.innerText = 'Authentication failed';
           });
       };
 
@@ -64,19 +72,13 @@
         }
       });
 
-      // handle submit / login button
-      const submit = document.getElementById('login');
-      submit.addEventListener('click', (e) => {
-        e.preventDefault();
+      // handle login button click
+      const loginButton = document.getElementById('login');
+      loginButton.addEventListener('click', () => {
         const password = input.value;
         input.value = ''; // clear input
         login(password);
       });
     </script>
-
-    <noscript
-      >JavaScript is not detected or enabled but it is required for this
-      site.</noscript
-    >
   </body>
 </html>

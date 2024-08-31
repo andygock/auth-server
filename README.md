@@ -34,11 +34,16 @@ Install [nodemon](https://nodemon.io/) globally.
 
 Install dependencies
 
-    yarn
+    npm install
 
 Start dev server
 
-    yarn start
+    npm start
+
+I developed this using `pnpm` so you can use that instead of `npm` if you prefer.
+
+    pnpm install
+    pnpm start
 
 Be aware that the authentication cookie used by default uses the [secure attribute](https://en.wikipedia.org/wiki/Secure_cookie) thus the demo will only work when connecting via
 
@@ -54,7 +59,7 @@ Install with [pm2](https://pm2.keymetrics.io/)
 
 ## Example NGINX conf
 
-Use the following in our NGINX server conf.
+Use the following in our NGINX server conf. You should change the port number (default of `3000`) to match the port number you are running the auth server on.
 
 ```txt
 # optional:
@@ -104,7 +109,7 @@ location ~ ^/(login|logged-in|logout)$ {
 }
 
 # this CSS is used by the three requests above and is served by the proxy
-location = /css/skeleton.css {
+location ~* ^/(auth_style\.css|auth_padlock\.svg)$ {
     proxy_pass http://localhost:3000;
 }
 
