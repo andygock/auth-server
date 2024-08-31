@@ -25,7 +25,7 @@ dotenv.config();
 const port = process.env.AUTH_PORT || 3000;
 const tokenSecret = process.env.AUTH_TOKEN_SECRET;
 const defaultUser = 'user'; // default user when no username supplied
-const expiryDays = process.env.EXPIRY_DAYS || 7;
+const expiryDays = process.env.AUTH_EXPIRY_DAYS || 7;
 const cookieSecure =
   'AUTH_COOKIE_SECURE' in process.env
     ? process.env.AUTH_COOKIE_SECURE === 'true'
