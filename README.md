@@ -132,7 +132,6 @@ location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
 
 ## References
 
-- [Skeleton CSS](https://github.com/dhg/Skeleton)
 - [NGINX sub request authentication](https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-subrequest-authentication/)
 - [Using JWTs with NodeJS tutorial](https://www.digitalocean.com/community/tutorials/nodejs-jwt-expressjs)
 - [jsonwebtoken node module](https://github.com/auth0/node-jsonwebtoken)
