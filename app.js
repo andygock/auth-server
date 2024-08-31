@@ -50,7 +50,12 @@ try {
   process.exit(1);
 }
 
-const cookieNameRealm = (realm) => `${cookieName}_${encodeURIComponent(realm)}`;
+const cookieNameWithRealm = (realm) => {
+  if (!realm) {
+    return cookieName;
+  }
+  return `${cookieName}_${encodeURIComponent(realm)}`;
+};
 
 // default auth function
 // can be customised by defining one in auth.js, e.g use custom back end database
@@ -86,8 +91,10 @@ if (!tokenSecret) {
 
 // middleware to check auth status
 const jwtVerify = (req, res, next) => {
+  const realm = req.headers['x-auth-realm'];
+
   // get token from cookies
-  const token = req.cookies[cookieName];
+  const token = req.cookies[cookieNameWithRealm(realm)];
 
   // check for missing token
   if (!token) return next();
@@ -96,7 +103,7 @@ const jwtVerify = (req, res, next) => {
     if (err) {
       // e.g malformed token, bad signature etc - clear the cookie also
       console.log(err);
-      res.clearCookie(cookieName);
+      res.clearCookie(cookieNameWithRealm(realm));
       return res.status(403).send(err);
     }
 
@@ -182,7 +189,7 @@ app.get('/auth', (req, res, next) => {
     });
 
     // set JWT as cookie, 7 day age
-    res.cookie(cookieName, token, {
+    res.cookie(cookieNameWithRealm(realm), token, {
       httpOnly: true,
       maxAge: 1000 * 86400 * expiryDays, // milliseconds
       secure: cookieSecure,
@@ -213,7 +220,7 @@ app.post('/login', apiLimiter, (req, res) => {
     });
 
     // set JWT as cookie, 7 day age
-    res.cookie(cookieName, token, {
+    res.cookie(cookieNameWithRealm(realm), token, {
       httpOnly: true,
       maxAge: 1000 * 86400 * expiryDays, // milliseconds
       secure: cookieSecure,
@@ -228,6 +235,8 @@ app.post('/login', apiLimiter, (req, res) => {
 
 // force logout
 app.get('/logout', (req, res) => {
+  const realm = req.headers['x-auth-realm'];
+
   // Disable caching
   res.set(
     'Cache-Control',
@@ -237,12 +246,14 @@ app.get('/logout', (req, res) => {
   res.set('Expires', '0');
   res.set('Surrogate-Control', 'no-store');
 
-  res.clearCookie(cookieName);
+  res.clearCookie(cookieNameWithRealm(realm));
   res.redirect('/login');
 });
 
 // endpoint called by logout page
 app.post('/logout', (req, res) => {
+  const realm = req.headers['x-auth-realm'];
+
   // Disable caching
   res.set(
     'Cache-Control',
@@ -259,7 +270,7 @@ app.post('/logout', (req, res) => {
   if (cookieOverrides.domain) {
     options.domain = cookieOverrides.domain;
   }
-  res.clearCookie(cookieName, options);
+  res.clearCookie(cookieNameWithRealm(realm), options);
   res.sendStatus(200);
 });
 
