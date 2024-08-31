@@ -56,7 +56,7 @@ const cookieNameRealm = (realm) => `${cookieName}_${encodeURIComponent(realm)}`;
 // can be customised by defining one in auth.js, e.g use custom back end database
 // using single password for the time being, but this could query a database etc
 let checkAuth = (user, pass, realm) => {
-  console.log('checkAuth()', user, pass, realm);
+  // console.log('checkAuth()', user, pass, realm);
 
   const authPassword = process.env.AUTH_PASSWORD;
   if (!authPassword) {
@@ -228,12 +228,30 @@ app.post('/login', apiLimiter, (req, res) => {
 
 // force logout
 app.get('/logout', (req, res) => {
+  // Disable caching
+  res.set(
+    'Cache-Control',
+    'no-store, no-cache, must-revalidate, proxy-revalidate'
+  );
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.set('Surrogate-Control', 'no-store');
+
   res.clearCookie(cookieName);
   res.redirect('/login');
 });
 
 // endpoint called by logout page
 app.post('/logout', (req, res) => {
+  // Disable caching
+  res.set(
+    'Cache-Control',
+    'no-store, no-cache, must-revalidate, proxy-revalidate'
+  );
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.set('Surrogate-Control', 'no-store');
+
   const options = {};
   if (cookieOverrides.path) {
     options.path = cookieOverrides.path;
