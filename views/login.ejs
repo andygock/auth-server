@@ -10,6 +10,14 @@
     <div class="container" id="content" style="display: none">
       <h1>Login</h1>
       <p>Authentication is required to access <span id="area">this area</a></p>
+      <% if (useUsername) { %>
+        <input
+          type="text"
+          name="username"
+          id="username"
+          placeholder="Enter your username"
+        />
+      <% } %>
       <input
         type="password"
         name="password"

@@ -25,6 +25,8 @@ Refer to this tutorial on my blog:
 - `AUTH_COOKIE_SECURE` - Secure attribute on authentication cookie sent from server. Set to `true` to enable, or if `AUTH_COOKIE_SECURE` is missing, defaults to `true`.
 - `AUTH_COOKIE_OVERRIDES` - Optional JSON string which is added to the `authToken` cookie, in addition to `httpOnly`, `secure` and `maxAge`.
 - `AUTH_EXPIRY_DAYS` - Optional number of days before JWT expires (default: 7)
+- `AUTH_COOKIE_NAME` - Optional name of the cookie prefix used for the JWT (default: `authToken`)
+- `AUTH_USE_USERNAME` - Optional boolean to use a username too (default: `false`)
 
 Refer to [dotenv documentation](https://github.com/motdotla/dotenv#readme) for formatting.
 
@@ -106,6 +108,10 @@ location = /auth {
     proxy_set_header X-Original-URI $request_uri;
     proxy_set_header X-Original-Remote-Addr $remote_addr;
     proxy_set_header X-Original-Host $host;
+
+    # optional realm header, allows to use the same auth server for multiple sites
+    proxy_set_header X-Auth-Realm "";
+    add_header X-Auth-Realm "myrealm";
 }
 
 # these are handled by the proxy as part of the auth routines
@@ -114,6 +120,10 @@ location ~ ^/(login|logged-in|logout)$ {
     proxy_set_header X-Original-URI $request_uri;
     proxy_set_header X-Original-Remote-Addr $remote_addr;
     proxy_set_header X-Original-Host $host;
+
+    # optional realm header, allows to use the same auth server for multiple sites
+    proxy_set_header X-Auth-Realm "";
+    add_header X-Auth-Realm "myrealm";
 }
 
 # this CSS is used by the three requests above and is served by the proxy

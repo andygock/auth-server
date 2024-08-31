@@ -9,7 +9,9 @@
   <body>
     <div class="container" id="content">
       <button id="logout">Log Out</button>
+      <% if (useUsername) { %>
       <h1>Hello <%= user %></h1>
+      <% } %>
       <p>You are logged in.</p>
       <p>Visit <a href="/" id="link">/</a>.</p>
     </div>

@@ -31,6 +31,9 @@ const cookieSecure =
     ? process.env.AUTH_COOKIE_SECURE === 'true'
     : true;
 
+// actual cookie, if there is a realm is cookieName_realm
+const cookieName = process.env.AUTH_COOKIE_NAME || 'authToken';
+
 let cookieOverrides = {};
 try {
   if (process.env.AUTH_COOKIE_OVERRIDES) {
@@ -47,10 +50,14 @@ try {
   process.exit(1);
 }
 
+const cookieNameRealm = (realm) => `${cookieName}_${encodeURIComponent(realm)}`;
+
 // default auth function
 // can be customised by defining one in auth.js, e.g use custom back end database
 // using single password for the time being, but this could query a database etc
-let checkAuth = (user, pass) => {
+let checkAuth = (user, pass, realm) => {
+  console.log('checkAuth()', user, pass, realm);
+
   const authPassword = process.env.AUTH_PASSWORD;
   if (!authPassword) {
     console.error(
@@ -80,7 +87,7 @@ if (!tokenSecret) {
 // middleware to check auth status
 const jwtVerify = (req, res, next) => {
   // get token from cookies
-  const token = req.cookies.authToken;
+  const token = req.cookies[cookieName];
 
   // check for missing token
   if (!token) return next();
@@ -89,7 +96,7 @@ const jwtVerify = (req, res, next) => {
     if (err) {
       // e.g malformed token, bad signature etc - clear the cookie also
       console.log(err);
-      res.clearCookie('authToken');
+      res.clearCookie(cookieName);
       return res.status(403).send(err);
     }
 
@@ -127,7 +134,10 @@ app.get('/', (req, res) => {
 // interface for users who are logged in
 app.get('/logged-in', (req, res) => {
   if (!req.user) return res.redirect('/login');
-  return res.render('logged-in', { user: req.user || null });
+  return res.render('logged-in', {
+    useUsername: process.env.AUTH_USE_USERNAME || false,
+    user: req.user || null,
+  });
 });
 
 // login interface
@@ -137,6 +147,7 @@ app.get('/login', (req, res) => {
   const requestUri = req.headers['x-original-uri'];
   const remoteAddr = req.headers['x-original-remote-addr'];
   const host = req.headers['x-original-host'];
+  const realm = req.headers['x-auth-realm'];
 
   // check if user is already logged in
   if (req.user) return res.redirect('/logged-in');
@@ -144,28 +155,29 @@ app.get('/login', (req, res) => {
   // user not logged in, show login interface
   return res.render('login', {
     referer: requestUri ? `${host}/${requestUri}` : '/',
+    useUsername: process.env.AUTH_USE_USERNAME || false,
   });
 });
 
 // endpoint called by NGINX sub request
-// expect JWT in cookie 'authToken'
+// expect JWT in cookieName
 app.get('/auth', (req, res, next) => {
   // parameters from original client request
   // these could be used for validating request
   const requestUri = req.headers['x-original-uri'];
   const remoteAddr = req.headers['x-original-remote-addr'];
   const host = req.headers['x-original-host'];
+  const realm = req.headers['x-auth-realm'];
 
   if (req.user) {
-    // user is already authenticated, refresh cookie
-
-    // generate JWT
-    const token = jwt.sign({ user: req.user }, tokenSecret, {
+    // user is already authenticated, refresh cookie and regenerate JWT
+    const payload = { user: req.user, realm };
+    const token = jwt.sign(payload, tokenSecret, {
       expiresIn: `${expiryDays}d`,
     });
 
     // set JWT as cookie, 7 day age
-    res.cookie('authToken', token, {
+    res.cookie(cookieName, token, {
       httpOnly: true,
       maxAge: 1000 * 86400 * expiryDays, // milliseconds
       secure: cookieSecure,
@@ -181,19 +193,22 @@ app.get('/auth', (req, res, next) => {
 
 // endpoint called by login page, username and password posted as JSON body
 app.post('/login', apiLimiter, (req, res) => {
+  // console.log('/login', req.realm);
+
   const { username, password } = req.body;
+  const realm = req.headers['x-auth-realm'];
 
   if (checkAuth(username, password)) {
     // successful auth
     const user = username || defaultUser;
 
     // generate JWT
-    const token = jwt.sign({ user }, tokenSecret, {
+    const token = jwt.sign({ user, realm }, tokenSecret, {
       expiresIn: `${expiryDays}d`,
     });
 
     // set JWT as cookie, 7 day age
-    res.cookie('authToken', token, {
+    res.cookie(cookieName, token, {
       httpOnly: true,
       maxAge: 1000 * 86400 * expiryDays, // milliseconds
       secure: cookieSecure,
@@ -208,7 +223,7 @@ app.post('/login', apiLimiter, (req, res) => {
 
 // force logout
 app.get('/logout', (req, res) => {
-  res.clearCookie('authToken');
+  res.clearCookie(cookieName);
   res.redirect('/login');
 });
 
@@ -221,7 +236,7 @@ app.post('/logout', (req, res) => {
   if (cookieOverrides.domain) {
     options.domain = cookieOverrides.domain;
   }
-  res.clearCookie('authToken', options);
+  res.clearCookie(cookieName, options);
   res.sendStatus(200);
 });
 
