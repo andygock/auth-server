@@ -65,6 +65,13 @@ sudo docker build -t auth-server .
 sudo docker run -it -p 3000:3000 -e AUTH_PASSWORD=test -e AUTH_TOKEN_SECRET=verysecret auth-server
 ```
 
+
+### Docker Compose
+
+```sh
+docker compose up
+```
+
 ## Example NGINX conf
 
 Use the following in our NGINX server conf. You should change the port number (default of `3000`) to match the port number you are running the auth server on.

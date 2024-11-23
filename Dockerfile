@@ -6,11 +6,11 @@ RUN mkdir -p /app/node_modules && chown -R node:node /app
 
 WORKDIR /app
 
-COPY --chown=node:node package.json yarn.lock ./
+COPY --chown=node:node package.json ./
 
 USER node
 
-RUN yarn install
+RUN npm install
 
 COPY --chown=node:node public public
 COPY --chown=node:node views views
