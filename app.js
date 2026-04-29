@@ -5,13 +5,68 @@ const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const nocache = require('nocache');
+const path = require('path');
 
 const app = express();
+
+const parseBooleanEnv = (value, defaultValue = false) => {
+  if (value === undefined) {
+    return defaultValue;
+  }
+
+  return ['true', '1', 'yes', 'on'].includes(String(value).toLowerCase());
+};
+
+const isLoopbackAddress = (address) => {
+  return (
+    address === '127.0.0.1' ||
+    address === '::1' ||
+    address === '::ffff:127.0.0.1'
+  );
+};
+
+const getClientAddress = (req) => {
+  const remoteAddress = req.socket.remoteAddress;
+  const originalRemoteAddr = req.headers['x-original-remote-addr'];
+
+  if (isLoopbackAddress(remoteAddress) && originalRemoteAddr) {
+    return originalRemoteAddr;
+  }
+
+  return req.ip;
+};
+
+const getJwtSignOptions = (realm) => ({
+  algorithm: 'HS256',
+  expiresIn: `${expiryDays}d`,
+  issuer: 'auth-server',
+  audience: realm || 'default',
+});
+
+const getJwtVerifyOptions = (realm) => ({
+  algorithms: ['HS256'],
+  issuer: 'auth-server',
+  audience: realm || 'default',
+});
+
+const getAuthCookieOptions = () => ({
+  httpOnly: true,
+  maxAge: 1000 * 86400 * expiryDays,
+  sameSite: 'lax',
+  secure: cookieSecure,
+  ...cookieOverrides,
+});
+
+const getClearCookieOptions = () => {
+  const { domain, path, sameSite, secure } = getAuthCookieOptions();
+  return { domain, path, sameSite, secure };
+};
 
 // rate limiter used on auth attempts
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 15, // limit each IP to 15 requests per windowMs
+  keyGenerator: (req) => getClientAddress(req),
   message: {
     status: 'fail',
     message: 'Too many requests, please try again later',
@@ -25,14 +80,19 @@ dotenv.config();
 const port = process.env.AUTH_PORT || 3000;
 const tokenSecret = process.env.AUTH_TOKEN_SECRET;
 const defaultUser = 'user'; // default user when no username supplied
-const expiryDays = process.env.AUTH_EXPIRY_DAYS || 7;
-const cookieSecure =
-  'AUTH_COOKIE_SECURE' in process.env
-    ? process.env.AUTH_COOKIE_SECURE === 'true'
-    : true;
+const expiryDays = Number.parseInt(process.env.AUTH_EXPIRY_DAYS || '7', 10);
+const cookieSecure = parseBooleanEnv(process.env.AUTH_COOKIE_SECURE, true);
+const useUsername = parseBooleanEnv(process.env.AUTH_USE_USERNAME, false);
 
 // actual cookie, if there is a realm is cookieName_realm
 const cookieName = process.env.AUTH_COOKIE_NAME || 'authToken';
+
+if (!Number.isFinite(expiryDays) || expiryDays <= 0) {
+  console.error(
+    'Misconfigured server. Environment variable AUTH_EXPIRY_DAYS must be a positive integer'
+  );
+  process.exit(1);
+}
 
 let cookieOverrides = {};
 try {
@@ -78,9 +138,19 @@ let checkAuth = (user, pass, realm) => {
 
 // load checkAuth() if defined by user in auth.js
 try {
-  customCheckAuth = require('./auth.js');
+  const customAuthPath = path.resolve(__dirname, 'auth.js');
+  const customCheckAuth = require(customAuthPath);
   if (typeof customCheckAuth === 'function') checkAuth = customCheckAuth;
-} catch (ex) {}
+} catch (ex) {
+  if (
+    ex.code !== 'MODULE_NOT_FOUND' ||
+    !ex.message.includes(path.resolve(__dirname, 'auth.js'))
+  ) {
+    console.error('Failed to load custom auth.js');
+    console.error(ex);
+    process.exit(1);
+  }
+}
 
 if (!tokenSecret) {
   console.error(
@@ -99,12 +169,20 @@ const jwtVerify = (req, res, next) => {
   // check for missing token
   if (!token) return next();
 
-  jwt.verify(token, tokenSecret, (err, decoded) => {
+  jwt.verify(token, tokenSecret, getJwtVerifyOptions(realm), (err, decoded) => {
     if (err) {
       // e.g malformed token, bad signature etc - clear the cookie also
       console.log(err);
-      res.clearCookie(cookieNameWithRealm(realm));
+      res.clearCookie(cookieNameWithRealm(realm), getClearCookieOptions());
       return res.status(403).send(err);
+    }
+
+    if (decoded.realm !== (realm || null)) {
+      res.clearCookie(cookieNameWithRealm(realm), getClearCookieOptions());
+      return res.status(403).send({
+        status: 'fail',
+        message: 'Token realm does not match request realm',
+      });
     }
 
     req.user = decoded.user || null;
@@ -112,6 +190,7 @@ const jwtVerify = (req, res, next) => {
   });
 };
 
+app.set('trust proxy', 'loopback');
 app.set('view engine', 'ejs');
 
 // logging
@@ -147,7 +226,7 @@ app.get('/', (req, res) => {
 app.get('/logged-in', (req, res) => {
   if (!req.user) return res.redirect('/login');
   return res.render('logged-in', {
-    useUsername: process.env.AUTH_USE_USERNAME || false,
+    useUsername,
     user: req.user || null,
   });
 });
@@ -167,7 +246,7 @@ app.get('/login', (req, res) => {
   // user not logged in, show login interface
   return res.render('login', {
     referer: requestUri ? `${host}/${requestUri}` : '/',
-    useUsername: process.env.AUTH_USE_USERNAME || false,
+    useUsername,
   });
 });
 
@@ -183,18 +262,11 @@ app.get('/auth', (req, res, next) => {
 
   if (req.user) {
     // user is already authenticated, refresh cookie and regenerate JWT
-    const payload = { user: req.user, realm };
-    const token = jwt.sign(payload, tokenSecret, {
-      expiresIn: `${expiryDays}d`,
-    });
+    const payload = { user: req.user, realm: realm || null };
+    const token = jwt.sign(payload, tokenSecret, getJwtSignOptions(realm));
 
     // set JWT as cookie, 7 day age
-    res.cookie(cookieNameWithRealm(realm), token, {
-      httpOnly: true,
-      maxAge: 1000 * 86400 * expiryDays, // milliseconds
-      secure: cookieSecure,
-      ...cookieOverrides,
-    });
+    res.cookie(cookieNameWithRealm(realm), token, getAuthCookieOptions());
 
     return res.sendStatus(200);
   } else {
@@ -215,17 +287,14 @@ app.post('/login', apiLimiter, (req, res) => {
     const user = username || defaultUser;
 
     // generate JWT
-    const token = jwt.sign({ user, realm }, tokenSecret, {
-      expiresIn: `${expiryDays}d`,
-    });
+    const token = jwt.sign(
+      { user, realm: realm || null },
+      tokenSecret,
+      getJwtSignOptions(realm)
+    );
 
     // set JWT as cookie, 7 day age
-    res.cookie(cookieNameWithRealm(realm), token, {
-      httpOnly: true,
-      maxAge: 1000 * 86400 * expiryDays, // milliseconds
-      secure: cookieSecure,
-      ...cookieOverrides,
-    });
+    res.cookie(cookieNameWithRealm(realm), token, getAuthCookieOptions());
     return res.send({ status: 'ok' });
   }
 
@@ -246,7 +315,7 @@ app.get('/logout', (req, res) => {
   res.set('Expires', '0');
   res.set('Surrogate-Control', 'no-store');
 
-  res.clearCookie(cookieNameWithRealm(realm));
+  res.clearCookie(cookieNameWithRealm(realm), getClearCookieOptions());
   res.redirect('/login');
 });
 
@@ -263,14 +332,7 @@ app.post('/logout', (req, res) => {
   res.set('Expires', '0');
   res.set('Surrogate-Control', 'no-store');
 
-  const options = {};
-  if (cookieOverrides.path) {
-    options.path = cookieOverrides.path;
-  }
-  if (cookieOverrides.domain) {
-    options.domain = cookieOverrides.domain;
-  }
-  res.clearCookie(cookieNameWithRealm(realm), options);
+  res.clearCookie(cookieNameWithRealm(realm), getClearCookieOptions());
   res.sendStatus(200);
 });
 

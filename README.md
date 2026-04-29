@@ -1,6 +1,6 @@
 # auth-server
 
-A very simple standalone authentication server Express app.
+A very simple standalone authentication server Express app. Requires Node.js 18.11.0 or later.
 
 It can be used for protecting web sites with NGINX subrequest authentication.
 
@@ -19,11 +19,11 @@ Refer to this tutorial on my blog:
 
 ## Configure `.env`
 
-- `AUTH_PORT` -  Listening port of application (default: 3000)
+- `AUTH_PORT` - Listening port of application (default: 3000)
 - `AUTH_PASSWORD` - Authentication password
 - `AUTH_TOKEN_SECRET` - [JWT secret](https://en.wikipedia.org/wiki/JSON_Web_Token#Structure)
-- `AUTH_COOKIE_SECURE` - Secure attribute on authentication cookie sent from server. Set to `true` to enable, or if `AUTH_COOKIE_SECURE` is missing, defaults to `true`.
-- `AUTH_COOKIE_OVERRIDES` - Optional JSON string which is added to the `authToken` cookie, in addition to `httpOnly`, `secure` and `maxAge`.
+- `AUTH_COOKIE_SECURE` - Secure attribute on authentication cookie sent from server. Parsed as a boolean. If `AUTH_COOKIE_SECURE` is missing, it defaults to `true`.
+- `AUTH_COOKIE_OVERRIDES` - Optional JSON string which is added to the `authToken` cookie, in addition to `httpOnly`, `secure`, `sameSite=lax` and `maxAge`.
 - `AUTH_EXPIRY_DAYS` - Optional number of days before JWT expires (default: 7)
 - `AUTH_COOKIE_NAME` - Optional name of the cookie prefix used for the JWT (default: `authToken`)
 - `AUTH_USE_USERNAME` - Optional boolean to use a username too (default: `false`)
@@ -34,15 +34,15 @@ You can define a custom auth routine in `auth.js`. See `auth.example.js` for an 
 
 ## Development
 
-Install [nodemon](https://nodemon.io/) globally.
+I use [pnpm](https://pnpm.io/) for development, but you can also use `npm` or `yarn` if you prefer.
 
 Install dependencies
 
-    npm install
+    pnpm install
 
-Start dev server
+Start dev server with Node.js built-in file watcher
 
-    npm dev
+    pnpm dev
 
 Be aware that the authentication cookie used by default uses the [secure attribute](https://en.wikipedia.org/wiki/Secure_cookie) thus the demo will only work when connecting via
 
@@ -52,7 +52,9 @@ Be aware that the authentication cookie used by default uses the [secure attribu
 
 ## Production
 
-Start with `npm start`, or use one of the strategies below
+Start with
+
+    pnpm start
 
 ### PM2
 
@@ -66,6 +68,8 @@ Install with [pm2](https://pm2.keymetrics.io/)
 sudo docker build -t auth-server .
 sudo docker run -it -p 3000:3000 -e AUTH_PASSWORD=test -e AUTH_TOKEN_SECRET=verysecret auth-server
 ```
+
+This server expects `X-Original-Remote-Addr` to be set by a trusted loopback proxy such as local NGINX. The bundled rate limiter only uses that header when the direct peer is a loopback address.
 
 ## Example NGINX conf
 

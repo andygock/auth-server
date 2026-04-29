@@ -9,7 +9,7 @@
   <body>
     <div class="container" id="content" style="display: none">
       <h1>Login</h1>
-      <p>Authentication is required to access <span id="area">this area</a></p>
+      <p>Authentication is required to access <span id="area">this area</span></p>
       <% if (useUsername) { %>
         <input
           type="text"
@@ -37,13 +37,14 @@
       document.title = 'Log in to ' + location.host;
 
       document.getElementById('area').innerText = location.host;
+      const usernameInput = document.getElementById('username');
 
       // post password to /auth
-      const login = (password) => {
+      const login = (username, password) => {
         fetch('/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password }),
+          body: JSON.stringify({ username, password }),
         })
           .then((response) => {
             // check for auth failure for rejected credentials
@@ -70,22 +71,40 @@
 
       // handle password text field
       const input = document.getElementById('password');
-      input.focus();
+      if (usernameInput) {
+        usernameInput.focus();
+      } else {
+        input.focus();
+      }
+
+      const submitLogin = () => {
+        const username = usernameInput ? usernameInput.value : undefined;
+        const password = input.value;
+
+        input.value = ''; // clear input
+        login(username, password);
+      };
+
       input.addEventListener('keyup', (e) => {
         e.preventDefault();
         if (e.key === 'Enter') {
-          const password = input.value;
-          input.value = ''; // clear input
-          login(password);
+          submitLogin();
         }
       });
+
+      if (usernameInput) {
+        usernameInput.addEventListener('keyup', (e) => {
+          e.preventDefault();
+          if (e.key === 'Enter') {
+            submitLogin();
+          }
+        });
+      }
 
       // handle login button click
       const loginButton = document.getElementById('login');
       loginButton.addEventListener('click', () => {
-        const password = input.value;
-        input.value = ''; // clear input
-        login(password);
+        submitLogin();
       });
     </script>
   </body>

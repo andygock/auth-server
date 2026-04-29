@@ -1,17 +1,17 @@
 {
   "dependencies": {
-    "cookie-parser": "^1.4.6",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
-    "express": "^4.19.2",
+    "express": "^5.2.1",
     "express-rate-limit": "^7.4.0",
-    "jsonwebtoken": "^9.0.2",
-    "morgan": "^1.10.0",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.10.1",
     "nocache": "^4.0.0"
   },
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "node --watch app.js"
   },
   "name": "auth-server",
   "version": "1.0.0",
@@ -19,7 +19,11 @@
   "repository": "git@github.com:andygock/auth-server.git",
   "author": "Andy Gock <andy@gock.net>",
   "license": "MIT",
-  "devDependencies": {
-    "nodemon": "^3.1.4"
-  }
+  "pnpm": {
+    "overrides": {
+      "brace-expansion": "1.1.13",
+      "minimatch": "3.1.4"
+    }
+  },
+  "devDependencies": {}
 }
