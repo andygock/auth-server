@@ -83,6 +83,7 @@ const defaultUser = 'user'; // default user when no username supplied
 const expiryDays = Number.parseInt(process.env.AUTH_EXPIRY_DAYS || '7', 10);
 const cookieSecure = parseBooleanEnv(process.env.AUTH_COOKIE_SECURE, true);
 const useUsername = parseBooleanEnv(process.env.AUTH_USE_USERNAME, false);
+const visitLinkUrl = process.env.AUTH_VISIT_LINK_URL || null;
 
 // actual cookie, if there is a realm is cookieName_realm
 const cookieName = process.env.AUTH_COOKIE_NAME || 'authToken';
@@ -228,6 +229,7 @@ app.get('/logged-in', (req, res) => {
   return res.render('logged-in', {
     useUsername,
     user: req.user || null,
+    visitLinkUrl,
   });
 });
 

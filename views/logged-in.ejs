@@ -13,7 +13,7 @@
       <h1>Hello <%= user %></h1>
       <% } %>
       <p>You are logged in.</p>
-      <p>Visit <a href="/" id="link">/</a>.</p>
+      <p>Visit <a href="<%= visitLinkUrl || '/' %>" id="link"><%= visitLinkUrl || '/' %></a>.</p>
     </div>
 
     <script>
@@ -47,8 +47,13 @@
       });
 
       const visitLink = document.getElementById('link');
+      <% if (visitLinkUrl) { %>
+      visitLink.innerText = '<%= visitLinkUrl %>';
+      visitLink.href = '<%= visitLinkUrl %>';
+      <% } else { %>
       visitLink.innerText = location.host;
       visitLink.href = location.protocol + '//' + location.host;
+      <% } %>
     </script>
 
     <noscript

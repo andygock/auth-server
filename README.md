@@ -27,6 +27,7 @@ Refer to this tutorial on my blog:
 - `AUTH_EXPIRY_DAYS` - Optional number of days before JWT expires (default: 7)
 - `AUTH_COOKIE_NAME` - Optional name of the cookie prefix used for the JWT (default: `authToken`)
 - `AUTH_USE_USERNAME` - Optional boolean to use a username too (default: `false`)
+- `AUTH_VISIT_LINK_URL` - Optional URL for the "Visit" link shown on the logged-in page. When set, overrides the default link to the current host (default: not set)
 
 Refer to [dotenv documentation](https://github.com/motdotla/dotenv#readme) for formatting.
 
