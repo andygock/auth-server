@@ -10,21 +10,27 @@
     <div class="container" id="content" style="display: none">
       <h1>Login</h1>
       <p>Authentication is required to access <span id="area">this area</span></p>
-      <% if (useUsername) { %>
+      <form id="loginForm" method="POST" action="/login">
+        <% if (useUsername) { %>
+          <input
+            type="text"
+            name="username"
+            id="username"
+            placeholder="Enter your username"
+            autocomplete="username"
+            required
+          />
+        <% } %>
         <input
-          type="text"
-          name="username"
-          id="username"
-          placeholder="Enter your username"
+          type="password"
+          name="password"
+          id="password"
+          placeholder="Enter your password"
+          autocomplete="current-password"
+          required
         />
-      <% } %>
-      <input
-        type="password"
-        name="password"
-        id="password"
-        placeholder="Enter your password"
-      />
-      <input type="submit" value="Login" id="login" />
+        <button type="submit" id="login">Login</button>
+      </form>
       <p id="message"></p>
     </div>
 
@@ -38,9 +44,13 @@
 
       document.getElementById('area').innerText = location.host;
       const usernameInput = document.getElementById('username');
+      const passwordInput = document.getElementById('password');
+      const messageEl = document.getElementById('message');
 
-      // post password to /auth
-      const login = (username, password) => {
+      const loginForm = document.getElementById('loginForm');
+
+      // post credentials to /login
+      const submitLogin = (username, password) => {
         fetch('/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -67,48 +77,29 @@
             }
 
             // auth failure, give feedback to user
-            const message = document.getElementById('message');
-            message.innerText = 'Authentication failed';
+            messageEl.innerText = 'Authentication failed';
           });
       };
 
-      // handle password text field
-      const input = document.getElementById('password');
+      // handle form submit (catches button click AND Enter key)
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const username = usernameInput ? usernameInput.value : undefined;
+        const password = passwordInput.value;
+
+        // clear password after capturing value (but keep fields visible for password managers)
+        passwordInput.value = '';
+
+        submitLogin(username, password);
+      });
+
+      // focus first field
       if (usernameInput) {
         usernameInput.focus();
       } else {
-        input.focus();
+        passwordInput.focus();
       }
-
-      const submitLogin = () => {
-        const username = usernameInput ? usernameInput.value : undefined;
-        const password = input.value;
-
-        input.value = ''; // clear input
-        login(username, password);
-      };
-
-      input.addEventListener('keyup', (e) => {
-        e.preventDefault();
-        if (e.key === 'Enter') {
-          submitLogin();
-        }
-      });
-
-      if (usernameInput) {
-        usernameInput.addEventListener('keyup', (e) => {
-          e.preventDefault();
-          if (e.key === 'Enter') {
-            submitLogin();
-          }
-        });
-      }
-
-      // handle login button click
-      const loginButton = document.getElementById('login');
-      loginButton.addEventListener('click', () => {
-        submitLogin();
-      });
     </script>
   </body>
 </html>
