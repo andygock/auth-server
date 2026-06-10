@@ -4,8 +4,8 @@
 
 const dotenv = require('dotenv');
 
-// read .env and store in process.env
-dotenv.config();
+// read .env and store in process.env without the v17 startup log
+dotenv.config({ quiet: true });
 
 const authPassword = process.env.AUTH_PASSWORD;
 

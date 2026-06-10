@@ -6,11 +6,12 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const nocache = require('nocache');
 const path = require('path');
+const { ipKeyGenerator } = rateLimit;
 
 const app = express();
 
-// read .env and store in process.env
-dotenv.config();
+// read .env and store in process.env without the v17 startup log
+dotenv.config({ quiet: true });
 
 const parseBooleanEnv = (value, defaultValue = false) => {
   if (value === undefined) {
@@ -33,10 +34,10 @@ const getClientAddress = (req) => {
   const originalRemoteAddr = req.headers['x-original-remote-addr'];
 
   if (isLoopbackAddress(remoteAddress) && originalRemoteAddr) {
-    return originalRemoteAddr;
+    return ipKeyGenerator(originalRemoteAddr);
   }
 
-  return req.ip;
+  return ipKeyGenerator(req.ip);
 };
 
 const getJwtSignOptions = (realm) => ({
