@@ -9,6 +9,9 @@ const path = require('path');
 
 const app = express();
 
+// read .env and store in process.env
+dotenv.config();
+
 const parseBooleanEnv = (value, defaultValue = false) => {
   if (value === undefined) {
     return defaultValue;
@@ -62,20 +65,6 @@ const getClearCookieOptions = () => {
   return { domain, path, sameSite, secure };
 };
 
-// rate limiter used on auth attempts
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 15, // limit each IP to 15 requests per windowMs
-  keyGenerator: (req) => getClientAddress(req),
-  message: {
-    status: 'fail',
-    message: 'Too many requests, please try again later',
-  },
-});
-
-// read .env and store in process.env
-dotenv.config();
-
 // config vars
 const port = process.env.AUTH_PORT || 3000;
 const tokenSecret = process.env.AUTH_TOKEN_SECRET;
@@ -117,6 +106,67 @@ const cookieNameWithRealm = (realm) => {
   }
   return `${cookieName}_${encodeURIComponent(realm)}`;
 };
+
+// --- Rate limiting configuration ---
+
+// Per-IP rate limiter for login attempts (default: 20 requests per 15 minutes)
+const loginRateLimitWindow = Number.parseInt(
+  process.env.AUTH_LOGIN_RATE_LIMIT_WINDOW_MIN || '15',
+  10
+);
+const loginRateLimitMax = Number.parseInt(
+  process.env.AUTH_LOGIN_RATE_LIMIT_MAX || '20',
+  10
+);
+
+const apiLimiter = rateLimit({
+  windowMs: loginRateLimitWindow * 60 * 1000,
+  max: loginRateLimitMax,
+  keyGenerator: (req) => getClientAddress(req),
+  message: {
+    status: 'fail',
+    message: 'Too many requests, please try again later',
+  },
+});
+
+// Global rate limiter for all requests (default: 100 requests per 1 minute)
+const globalRateLimitWindow = Number.parseInt(
+  process.env.AUTH_GLOBAL_RATE_LIMIT_WINDOW_MIN || '1',
+  10
+);
+const globalRateLimitMax = Number.parseInt(
+  process.env.AUTH_GLOBAL_RATE_LIMIT_MAX || '100',
+  10
+);
+
+const globalLimiter = rateLimit({
+  windowMs: globalRateLimitWindow * 60 * 1000,
+  max: globalRateLimitMax,
+  keyGenerator: (req) => getClientAddress(req),
+  message: {
+    status: 'fail',
+    message: 'Server is busy, please try again later',
+  },
+});
+
+// --- End rate limiting ---
+
+// Validate rate limit configuration
+if (
+  !Number.isFinite(loginRateLimitWindow) ||
+  loginRateLimitWindow <= 0 ||
+  !Number.isFinite(loginRateLimitMax) ||
+  loginRateLimitMax <= 0 ||
+  !Number.isFinite(globalRateLimitWindow) ||
+  globalRateLimitWindow <= 0 ||
+  !Number.isFinite(globalRateLimitMax) ||
+  globalRateLimitMax <= 0
+) {
+  console.error(
+    'Misconfigured server. Rate limit environment variables must be positive integers'
+  );
+  process.exit(1);
+}
 
 // default auth function
 // can be customised by defining one in auth.js, e.g use custom back end database
@@ -217,6 +267,9 @@ app.use(nocache());
 // check for JWT cookie from requestor
 // if there is a valid JWT, req.user is assigned
 app.use(jwtVerify);
+
+// global rate limiter applied to all routes
+app.use(globalLimiter);
 
 // we don't need a root path, direct to login interface
 app.get('/', (req, res) => {

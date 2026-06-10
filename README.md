@@ -9,7 +9,7 @@ It can be used for protecting web sites with NGINX subrequest authentication.
 - `/auth` is reverse proxied to Express app [auth-server](https://github.com/andygock/auth-server) which handles authentication. Cookies are passed on as well, so the auth server can check for a [JWT](https://jwt.io/).
 - Auth server sets httpOnly cookie containing a JWT.
 - JWT updated with new expiry each time a user visits protected area.
-- Default rate limit of 15 `/login` requests every 15 minutes.
+- Configurable per-IP rate limiter on `/login` (default: 20 requests per 15 minutes) and global rate limiter on all routes (default: 100 requests per minute).
 
 ## How to use
 
@@ -28,6 +28,10 @@ Refer to this tutorial on my blog:
 - `AUTH_COOKIE_NAME` - Optional name of the cookie prefix used for the JWT (default: `authToken`)
 - `AUTH_USE_USERNAME` - Optional boolean to use a username too (default: `false`)
 - `AUTH_VISIT_LINK_URL` - Optional URL for the "Visit" link shown on the logged-in page. When set, the user is immediately redirected here after login (server-side). When not set, the user is redirected back to the original URL they were trying to access (from the NGINX `X-Original-URI` header), or shown the logged-in page if no referrer is available.
+- `AUTH_LOGIN_RATE_LIMIT_WINDOW_MIN` - Per-IP rate limit time window in minutes for `/login` attempts (default: `15`)
+- `AUTH_LOGIN_RATE_LIMIT_MAX` - Maximum number of `/login` attempts per IP within the time window (default: `20`)
+- `AUTH_GLOBAL_RATE_LIMIT_WINDOW_MIN` - Global rate limit time window in minutes applied to all routes (default: `1`)
+- `AUTH_GLOBAL_RATE_LIMIT_MAX` - Maximum number of all requests (across all IPs) within the global time window (default: `100`)
 
 Refer to [dotenv documentation](https://github.com/motdotla/dotenv#readme) for formatting.
 
