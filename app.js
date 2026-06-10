@@ -226,7 +226,9 @@ app.get('/', (req, res) => {
 // interface for users who are logged in
 app.get('/logged-in', (req, res) => {
   if (!req.user) return res.redirect('/login');
-  if (visitLinkUrl) return res.redirect(visitLinkUrl);
+  // redirect to AUTH_VISIT_LINK_URL if set, otherwise use X-Original-URI from login flow
+  const redirectUrl = visitLinkUrl || req.query.redirect || null;
+  if (redirectUrl) return res.redirect(redirectUrl);
   return res.render('logged-in', {
     useUsername,
     user: req.user || null,

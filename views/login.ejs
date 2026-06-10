@@ -59,7 +59,10 @@
           .then((data) => {
             if (data && data.status === 'ok') {
               // auth success, cookie should be set
-              window.location.href = '/logged-in';
+              const redirect = '<%= referer %>';
+              window.location.href = redirect && redirect !== '/'
+                ? '/logged-in?redirect=' + encodeURIComponent(redirect)
+                : '/logged-in';
               return;
             }
 
