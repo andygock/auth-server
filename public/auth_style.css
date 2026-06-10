@@ -24,6 +24,7 @@ h1 {
 input[type='password'],
 input[type='text'],
 input[type='submit'],
+button#login,
 button#logout {
   width: 100%;
   padding: 10px;
@@ -31,8 +32,11 @@ button#logout {
   border: 1px solid #ccc;
   border-radius: 4px;
   box-sizing: border-box;
+  font-family: inherit;
+  font-size: inherit;
 }
 input[type='submit'],
+button#login,
 button#logout {
   background-color: #007bff;
   color: white;
@@ -40,6 +44,7 @@ button#logout {
   cursor: pointer;
 }
 input[type='submit']:hover,
+button#login:hover,
 button#logout:hover {
   background-color: #0056b3;
 }
