@@ -250,7 +250,7 @@ app.get('/login', (req, res) => {
 
   // user not logged in, show login interface
   return res.render('login', {
-    referer: requestUri ? `${host}/${requestUri}` : '/',
+    referer: requestUri || '/',
     useUsername,
   });
 });
