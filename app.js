@@ -226,6 +226,7 @@ app.get('/', (req, res) => {
 // interface for users who are logged in
 app.get('/logged-in', (req, res) => {
   if (!req.user) return res.redirect('/login');
+  if (visitLinkUrl) return res.redirect(visitLinkUrl);
   return res.render('logged-in', {
     useUsername,
     user: req.user || null,
