@@ -27,8 +27,8 @@ importers:
         specifier: ^9.0.3
         version: 9.0.3
       morgan:
-        specifier: ^1.11.0
-        version: 1.11.0
+        specifier: ^1.12.0
+        version: 1.12.0
       nocache:
         specifier: ^4.0.0
         version: 4.0.0
@@ -270,8 +270,8 @@ packages:
     resolution: {integrity: sha512-Lbgzdk0h4juoQ9fCKXW4by0UJqj+nOOrI9MJ1sSj4nI8aI2eo1qmvQEie4VD1glsS250n15LsWsYtCugiStS5A==}
     engines: {node: '>=18'}
 
-  morgan@1.11.0:
-    resolution: {integrity: sha512-zSkVu3t18r39pw4ixfBKvfZi3y2UOqr7d4WYwcj3m8nXpEQK4rPO6GLzs/CExoRgmX3y9EjmmcXqv6jq0SK46g==}
+  morgan@1.12.0:
+    resolution: {integrity: sha512-OHpTRQwn2ezasILW8iKe+Yww1XsfWsZIpUOLF7RDb2g5GwO3trPaRwi7+8BDiJ7HFx2Kg2mfUdCBcVhwYlOz2g==}
     engines: {node: '>= 0.8.0'}
 
   ms@2.0.0:
@@ -641,7 +641,7 @@ snapshots:
     dependencies:
       mime-db: 1.54.0
 
-  morgan@1.11.0:
+  morgan@1.12.0:
     dependencies:
       basic-auth: 2.0.1
       debug: 2.6.9
